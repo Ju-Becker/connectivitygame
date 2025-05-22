@@ -1,51 +1,58 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Graph Spiel</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Graph Spiel</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="ui">
+    <button id="toggleRulesBtn">Regeln</button>
     <button id="restartBtn">Neustart</button>
     <button id="undoBtn" disabled>Rückgängig</button>
     <div id="status"></div>
   </div>
 
   <div class="bot-selector">
-    <label for="botLevel">Computer spielt M:</label>
     <select id="botLevel">
-      <option value="off" selected>aus</option>
-      <option value="leicht">leicht</option>
-      <option value="mittel">mittel</option>
-      <option value="schwer">schwer</option>
+      <option value="off" selected>Mensch</option>
+      <option value="leicht">Bot easy</option>
+      <option value="mittel">Bot medium</option>
+      <option value="schwer">Bot hard</option>
+      <option value="godlike">Bot godlike</option>
     </select>
+    <label for="botLevel">gegen Mensch</label>
   </div>
 
   <div id="mainContainer">
     <canvas id="gameCanvas" width="1000" height="1000"></canvas>
 
-    <div id="rulesContainer">
-      <button id="toggleRulesBtn">Regeln</button>
-      <div id="rulesText" class="hidden">
-        <h3>Spielregeln</h3>
-        <p>
-          Die Spieler M ("Maker") und B ("Breaker") färben abwechselnd eine Kante.<br>
-          M gewinnt, sobald die beiden roten Knoten durch schwarze Kanten verbunden sind.<br>
-          Falls die roten Knoten nicht mehr durch schwarze Kanten verbunden werden können, gewinnt B.
-        </p>
-      </div>
-    </div>
-  </div>
-
   <script src="script.js"></script>
+    <div id="rulesText" class="hidden">
+    <h3>Spielregeln</h3>
+    <p>
+      Die Spieler M ("Maker") und B ("Breaker") färben abwechselnd eine Kante.<br>
+      M gewinnt, sobald die beiden roten Knoten durch schwarze Kanten verbunden sind.<br>
+      Falls die roten Knoten nicht mehr durch schwarze Kanten verbunden werden können, gewinnt B.
+    </p>
+  </div>
+  </div>
   <script>
-    // Regeln-Anzeige ein-/ausblenden
-    document.getElementById('toggleRulesBtn').addEventListener('click', function () {
-      const rules = document.getElementById('rulesText');
-      rules.classList.toggle('hidden');
-    });
-  </script>
+  const toggleBtn = document.getElementById('toggleRulesBtn');
+  const rulesText = document.getElementById('rulesText');
+
+  toggleBtn.addEventListener('click', function () {
+    if (rulesText.classList.contains('hidden')) {
+      const rect = toggleBtn.getBoundingClientRect();
+      rulesText.style.top = `${rect.bottom + 8}px`;  // 8px Abstand nach unten
+      rulesText.style.left = `${rect.left}px`;       // exakt unter dem Button
+      rulesText.classList.remove('hidden');
+    } else {
+      rulesText.classList.add('hidden');
+    }
+  });
+</script>
+
 </body>
 </html>
