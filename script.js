@@ -554,6 +554,7 @@ function canMStillWin() {
   draw();
 }*/
 function botPlay(botDifficulty) {
+  setTimeout(function() {
   if (botDifficulty=="leicht"){
     botplayleicht();
   }else if(botDifficulty=="mittel"){
@@ -561,54 +562,13 @@ function botPlay(botDifficulty) {
   }else if(botDifficulty=="schwer"){
     botplayschwer();
     return;
-  if (game_over || current_turn !== 'M') return;
-
-  const path = findBestPathForM();
-  
-  if (path && path.length > 0) {
-    // Finde erste freie Kante im Pfad
-    for (const key of path) {
-      if (edge_state.get(key) === null) {
-        const [u, v] = key.split(',');
-        edge_state.set(key, 'M');
-        move_history.push([[u, v], 'M']);
-        undo_available = true;
-        undoBtn.disabled = false;
-        startEdgeAnimation(key, current_turn);
-        checkWin();
-        if (!game_over) {
-          current_turn = 'B';
-        }
-        updateStatus();
-        draw();
-        return;
-      }
-    }
-  } else {
-    // Kein sinnvoller Pfad → fallback auf Random
-    const freeEdges = [];
-    for (const [key, state] of edge_state.entries()) {
-      if (state === null) freeEdges.push(key);
-    }
-    if (freeEdges.length > 0) {
-      const randomKey = freeEdges[Math.floor(Math.random() * freeEdges.length)];
-      const [u, v] = randomKey.split(',');
-      edge_state.set(randomKey, 'M');
-      move_history.push([[u, v], 'M']);
-      undo_available = true;
-      undoBtn.disabled = false;
-      startEdgeAnimation(randomKey, current_turn);
-      checkWin();
-      if (!game_over) {
-        current_turn = 'B';
-      }
-      updateStatus();
-      draw();
-    }
+  }else if(botDifficulty=="godlike"){
+    botplaygodlike();
+    return;
   }
-}else{return;}
+}, 0);
+  
 }
-
 /*function botplayleicht() {
        if (game_over || current_turn !== 'M') return;
 
@@ -1174,55 +1134,233 @@ function botplayschwer() {
   playEdge(fallbackU, fallbackV);
 }*/
 
-function botplayschwer() {
-  if (game_over || current_turn !== 'M') return;
+function botplayschwer(){
+ if (game_over || current_turn !== 'M') return;
 
-  // Liste der bevorzugten Kanten (als Strings wie "b1,b2")
-  const T_1_keys = T_1.map(pair => pair.join(','));
+  // Zähle bisherige M-Züge
+  const mMoves = move_history.filter(move => move[1] === 'M').length;
 
-  // Finde alle freien Kanten aus T_1
-  const freieT1Kanten = T_1_keys.filter(key => edge_state.get(key) === null);
-
-  if (freieT1Kanten.length > 0) {
-    // Spiele zufällige freie Kante aus T_1
-    const key = freieT1Kanten[Math.floor(Math.random() * freieT1Kanten.length)];
-    const [u, v] = key.split(',');
-    edge_state.set(key, 'M');
-    move_history.push([[u, v], 'M']);
-    undo_available = true;
-    undoBtn.disabled = false;
-    startEdgeAnimation(key, current_turn);
-    checkWin();
-    if (!game_over) {
-      current_turn = 'B';
-    }
-    updateStatus();
-    draw();
-    return;
-  }
-
-  // Fallback: Zufällige freie Kante aus dem gesamten Spielfeld
-  const freeEdges = [];
-  for (const [key, state] of edge_state.entries()) {
-    if (state === null) freeEdges.push(key);
-  }
-
-  if (freeEdges.length > 0) {
-    const randomKey = freeEdges[Math.floor(Math.random() * freeEdges.length)];
-    const [u, v] = randomKey.split(',');
-    edge_state.set(randomKey, 'M');
-    move_history.push([[u, v], 'M']);
-    undo_available = true;
-    undoBtn.disabled = false;
-    startEdgeAnimation(randomKey, current_turn);
-    checkWin();
-    if (!game_over) {
-      current_turn = 'B';
-    }
-    updateStatus();
-    draw();
+  // Sonderfall: 2. M-Zug → Bevorzuge Kante mit b5
+  if (mMoves <= 10) {
+    botplaygodlike();
+  }else{
+    botplaymittel();
   }
 }
+
+function botplaygodlike() {
+let T1conn = areAllT1NodesConnectedExtended(T_1,T_2,edge_state);
+let T2conn = areAllT2NodesConnectedExtended(T_1,T_2,edge_state);
+
+if(T1conn.connected == true && T2conn.connected == true){botplayleicht();return;}
+if(T1conn.connected == false && T2conn.connected == true){
+  let [u,v]= T1conn.usedEdge;
+  playEdge(u,v);
+  return;
+}
+if(T1conn.connected == true && T2conn.connected == false){
+  let [u,v]= T2conn.usedEdge;
+  playEdge(u,v);
+  return;
+}
+else if(T1conn.connected == false && T2conn.connected == false){
+  botplayleicht();return;
+}
+
+function playEdge(u, v) {
+  const key = edgeKey(u, v);
+  edge_state.set(key, 'M');
+  move_history.push([[u, v], 'M']);
+  undo_available = true;
+  undoBtn.disabled = false;
+  startEdgeAnimation(key, current_turn);
+  checkWin();
+  if (!game_over) {
+    current_turn = 'B';
+    botPlay(botDifficulty);
+  }
+  updateStatus();
+  draw();
+}
+  function edgeKey(u, v) {
+  return edge_state.has(`${u},${v}`) ? `${u},${v}` : `${v},${u}`;
+}
+
+function areAllT1NodesConnectedExtended(T_1, T_2, edge_state) {
+    // Hilfsfunktion: Prüft Verbindung mit einem optionalen zusätzlichen Null-Status-T2-Edge
+    function checkConnectivity(extraEdge = null) {
+        const T1_nodes = new Set();
+        for (const [u, v] of T_1) {
+            T1_nodes.add(u);
+            T1_nodes.add(v);
+        }
+
+        const graph = new Map();
+
+        function addEdge(u, v) {
+            if (!graph.has(u)) graph.set(u, []);
+            if (!graph.has(v)) graph.set(v, []);
+            graph.get(u).push(v);
+            graph.get(v).push(u);
+        }
+
+        // Kanten aus T_1 mit Status null oder 'M'
+        for (const [u, v] of T_1) {
+            const key = `${u},${v}`;
+            const state = edge_state.get(key);
+            if (state === null || state === 'M') {
+                addEdge(u, v);
+            }
+        }
+
+        // Kanten aus T_2 mit Status 'M'
+        for (const [u, v] of T_2) {
+            const key = `${u},${v}`;
+            const state = edge_state.get(key);
+            if (state === 'M') {
+                addEdge(u, v);
+            }
+        }
+
+        // Optional eine zusätzliche Null-Kante aus T_2 hinzufügen
+        if (extraEdge) {
+            const [u, v] = extraEdge;
+            addEdge(u, v);
+        }
+
+        // Prüfen ob alle T1-Knoten verbunden sind (DFS)
+        const visited = new Set();
+        const start = [...T1_nodes][0];
+        const stack = [start];
+
+        while (stack.length > 0) {
+            const node = stack.pop();
+            if (!visited.has(node)) {
+                visited.add(node);
+                const neighbors = graph.get(node) || [];
+                for (const neighbor of neighbors) {
+                    if (!visited.has(neighbor)) {
+                        stack.push(neighbor);
+                    }
+                }
+            }
+        }
+
+        for (const node of T1_nodes) {
+            if (!visited.has(node)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 1. Prüfen ohne Zusatzkante
+    if (checkConnectivity()) {
+        return { connected: true, usedEdge: null };
+    }
+
+    // 2. Prüfen mit jeweils einer Null-Kante aus T_2
+    for (const [u, v] of T_2) {
+        const key = `${u},${v}`;
+        if (edge_state.get(key) === null) {
+            if (checkConnectivity([u, v])) {
+                return { connected: false, usedEdge: [u, v] };
+            }
+        }
+    }
+
+    // 3. Wenn nichts klappt
+    return { connected: false, usedEdge: null };
+}
+function areAllT2NodesConnectedExtended(T_1, T_2, edge_state) {
+    function checkConnectivity(extraEdge = null) {
+        const T2_nodes = new Set();
+        for (const [u, v] of T_2) {
+            T2_nodes.add(u);
+            T2_nodes.add(v);
+        }
+
+        const graph = new Map();
+
+        function addEdge(u, v) {
+            if (!graph.has(u)) graph.set(u, []);
+            if (!graph.has(v)) graph.set(v, []);
+            graph.get(u).push(v);
+            graph.get(v).push(u);
+        }
+
+        // Kanten aus T_2 mit Status null oder 'M'
+        for (const [u, v] of T_2) {
+            const key = `${u},${v}`;
+            const state = edge_state.get(key);
+            if (state === null || state === 'M') {
+                addEdge(u, v);
+            }
+        }
+
+        // Kanten aus T_1 mit Status 'M'
+        for (const [u, v] of T_1) {
+            const key = `${u},${v}`;
+            const state = edge_state.get(key);
+            if (state === 'M') {
+                addEdge(u, v);
+            }
+        }
+
+        // Optional eine zusätzliche Null-Kante aus T_1 hinzufügen
+        if (extraEdge) {
+            const [u, v] = extraEdge;
+            addEdge(u, v);
+        }
+
+        // Prüfen ob alle T2-Knoten verbunden sind (DFS)
+        const visited = new Set();
+        const start = [...T2_nodes][0];
+        const stack = [start];
+
+        while (stack.length > 0) {
+            const node = stack.pop();
+            if (!visited.has(node)) {
+                visited.add(node);
+                const neighbors = graph.get(node) || [];
+                for (const neighbor of neighbors) {
+                    if (!visited.has(neighbor)) {
+                        stack.push(neighbor);
+                    }
+                }
+            }
+        }
+
+        for (const node of T2_nodes) {
+            if (!visited.has(node)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 1. Prüfen ohne Zusatzkante
+    if (checkConnectivity()) {
+        return { connected: true, usedEdge: null };
+    }
+
+    // 2. Prüfen mit jeweils einer Null-Kante aus T_1
+    for (const [u, v] of T_1) {
+        const key = `${u},${v}`;
+        if (edge_state.get(key) === null) {
+            if (checkConnectivity([u, v])) {
+                return { connected: false, usedEdge: [u, v] };
+            }
+        }
+    }
+
+    // 3. Wenn nichts klappt
+    return { connected: false, usedEdge: null };
+}
+
+
+}
+
 
 
 
