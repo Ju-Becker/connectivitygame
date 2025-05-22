@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Graph Spiel</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="ui">
+    <button id="restartBtn">Neustart</button>
+    <button id="undoBtn" disabled>Rückgängig</button>
+    <div id="status"></div>
+  </div>
+
+  <div class="bot-selector">
+    <label for="botLevel">Computer spielt M:</label>
+    <select id="botLevel">
+      <option value="off" selected>aus</option>
+      <option value="leicht">leicht</option>
+      <option value="mittel">mittel</option>
+      <option value="schwer">schwer</option>
+    </select>
+  </div>
+
+  <div id="mainContainer">
+    <canvas id="gameCanvas" width="1000" height="1000"></canvas>
+
+    <div id="rulesContainer">
+      <button id="toggleRulesBtn">Regeln</button>
+      <div id="rulesText" class="hidden">
+        <h3>Spielregeln</h3>
+        <p>
+          Die Spieler M ("Maker") und B ("Breaker") färben abwechselnd eine Kante.<br>
+          M gewinnt, sobald die beiden roten Knoten durch schwarze Kanten verbunden sind.<br>
+          Falls die roten Knoten nicht mehr durch schwarze Kanten verbunden werden können, gewinnt B.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Regeln-Anzeige ein-/ausblenden
+    document.getElementById('toggleRulesBtn').addEventListener('click', function () {
+      const rules = document.getElementById('rulesText');
+      rules.classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>
