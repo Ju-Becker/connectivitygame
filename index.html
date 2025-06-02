@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connectivity Game</title>
+  <link rel="stylesheet" href="style.css" />
+    <filter id="turbulence">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" />
+    </filter>
+  </svg>
+</head>
+<body>
+  <div id="game-canvas">
+  <div id="ui">
+    <button id="toggleRulesBtn">Regeln</button>
+    <button id="randomlayoutBtn">Zufälliges Spielbrett</button>
+    <button id="restartBtn">Neustart</button>
+    <button id="undoBtn" disabled>Rückgängig</button>
+    <button id="lastmoveBtn">Letzter Zug?</button>
+    <div id="status"></div>
+  </div>
+
+  <div class="bot-selector">
+    <select id="botLevel">
+			<option value="none" selected>Bitte wählen</option>
+      <option value="off">Mensch</option>
+      <option value="leicht">Bot easy</option>
+      <option value="mittel">Bot medium</option>
+      <option value="schwer">Bot hard</option>
+      <option value="godlike">Bot godlike</option>
+    </select>
+    <label for="botLevel">gegen Mensch</label>
+  </div>
+	<div id="itemModal" style="
+     display: none;
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background-color: rgba(0,0,0,0.5);
+     justify-content: center;
+     align-items: center;
+     z-index: 1000;">
+  <div style="
+       background: white;
+       padding: 20px;
+       border-radius: 8px;
+       text-align: center;
+       min-width: 200px;">
+    <p>Mit Items spielen?</p>
+    <button id="itemsYes">Ja</button>
+    <button id="itemsNo">Nein</button>
+  </div>
+</div>
+
+
+  <div id="mainContainer">
+    <canvas id="gameCanvas" width="1000" height="1000"></canvas>
+    <canvas id="effectcanvas" width="1000" height="1000"></canvas>
+  <div id="Items">
+  <p id="points">Punkte: <span id="points-value">0</span></p>
+  
+  <div class="items-header">
+    <span>Item</span>
+    <span>Kosten</span>
+  </div>
+
+  <div class="item-row">
+    <button id="blitz-button" disabled>⚡</button>
+    <span class="cost">4</span>
+  </div>
+
+  <div class="item-row">
+    <button id="reloadred-button" disabled>↻</button>
+    <span class="cost">8</span>
+  </div>
+
+	<div class="item-row">
+    <button id="addred-button" disabled>+</button>
+    <span class="cost">12</span>
+  </div>
+</div>
+
+
+
+
+  <script src="script.js"></script>
+    <div id="rulesText" class="hidden">
+    <h3>Spielregeln</h3>
+    <p>
+      Die Spieler M ("Maker") und B ("Breaker") färben abwechselnd eine Kante.<br>
+      M gewinnt, sobald die beiden roten Knoten durch orange Kanten verbunden sind.<br>
+      Falls die roten Knoten nicht mehr durch orange Kanten verbunden werden können, gewinnt B.
+    </p>
+  </div>
+  </div>
+  </div>
+  <script>
+  const toggleBtn = document.getElementById('toggleRulesBtn');
+  const rulesText = document.getElementById('rulesText');
+
+  toggleBtn.addEventListener('click', function () {
+    if (rulesText.classList.contains('hidden')) {
+      const rect = toggleBtn.getBoundingClientRect();
+      rulesText.style.top = `${rect.bottom + 8}px`;  // 8px Abstand nach unten
+      rulesText.style.left = `${rect.left}px`;       // exakt unter dem Button
+      rulesText.classList.remove('hidden');
+    } else {
+      rulesText.classList.add('hidden');
+    }
+  });
+</script>
+
+<div id="thunderstorm-container">
+  <!-- alle bisherigen Gewitter-Divs hier rein -->
+   <div id="dim-overlay"></div>
+   <div id="cloud-deck"></div>
+  <div id="cloud-layer"></div>
+  <div id="rain-layer"></div>
+  <div id="flash-overlay"></div>
+  <svg id="bolt"></svg>
+
+  </div>
+
+</body>
+</html>
