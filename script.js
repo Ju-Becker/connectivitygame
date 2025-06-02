@@ -2044,7 +2044,7 @@ function botplayschwer(){
   const mMoves = move_history.filter(move => move[1] === 'M').length;
 
   // Sonderfall: 2. M-Zug → Bevorzuge Kante mit b5
-  if (mMoves <= 10) {
+  if (mMoves <= 15) {
     botplaygodlike();
   }else{
     botplaymittel();
