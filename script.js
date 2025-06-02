@@ -1120,7 +1120,7 @@ canvas.addEventListener('mouseleave', e => {
 });
 
 canvas.addEventListener('click', e => {
-  if (game_over || botismoving || blitzongoing) return;
+  if (game_over || botismoving || blitzongoing || rednodemoving || rednodeadding) return;
 	if(botSelect.value == 'none'){
 		botSelect.options[0].hidden = true;
 		botSelect.classList.add('highlight');
