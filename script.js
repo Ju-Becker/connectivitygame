@@ -1335,13 +1335,14 @@ function botplayleicht() {
 
 
 function findBestPathForM() {
-    const redNodesArray = Array.from(red_nodes);
+  const redNodesArray = Array.from(red_nodes);
 
 // Shuffle using Fisher–Yates algorithm
 for (let i = redNodesArray.length - 1; i > 0; i--) {
   const j = Math.floor(Math.random() * (i + 1));
   [redNodesArray[i], redNodesArray[j]] = [redNodesArray[j], redNodesArray[i]];
 }
+
 
   // Hilfsfunktion: BFS über M-Kanten, um alle von start aus verbundenen Knoten zu ermitteln
   function getConnectedNodes(start) {
@@ -1471,10 +1472,42 @@ function botplaymittel() {
   var it = red_nodes.values();
   const start = it.next().value;
   const goal = it.next().value;
+  
 
   // Zähle bisherige M-Züge
   const mMoves = move_history.filter(move => move[1] === 'M').length;
 
+  // Sonderfall: 2. M-Zug → Bevorzuge Kante mit b5
+  if (mMoves === 0 || mMoves === 1) {
+  const target = mMoves === 0 ? start : goal;
+  const b5Edges = [];
+  for (const [key, state] of edge_state.entries()) {
+    const [u, v] = key.split(',');
+    if (state === null && (u=== target || v === target)) {
+      b5Edges.push(key);
+    }
+  }
+  console.log(b5Edges);
+  if (b5Edges.length > 0) {
+    const key = b5Edges[Math.floor(Math.random() * b5Edges.length)];
+    const [u, v] = key.split(',');
+    edge_state.set(key, 'M');
+    move_history.push([[u, v], 'M']);
+    undo_available = true;
+    undoBtn.disabled = false;
+    lastmove_available = true;
+    lastmoveBtn.disabled = false;
+    startEdgeAnimation(key, current_turn);
+    playClickSound();
+    checkWin();
+    if (!game_over) {
+      current_turn = 'B';
+    }
+    updateStatus();
+    draw();
+    return;
+  }
+}
 
   const path = findBestPathForM();
 
@@ -2786,6 +2819,7 @@ for (let i = 0; i < shuffledkeys.length; i++) {
   }else{red_nodes = rednodesfallback;}
 }
 rednodemoving = false;
+checkWin();
 }
 
 
