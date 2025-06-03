@@ -1475,35 +1475,6 @@ function botplaymittel() {
   // Zähle bisherige M-Züge
   const mMoves = move_history.filter(move => move[1] === 'M').length;
 
-  // Sonderfall: 2. M-Zug → Bevorzuge Kante mit b5
-  if (mMoves === 1) {
-    const b5Edges = [];
-    for (const [key, state] of edge_state.entries()) {
-      if (state === null && key.includes(goal)) {
-        b5Edges.push(key);
-      }
-    }
-
-    if (b5Edges.length > 0) {
-      const key = b5Edges[Math.floor(Math.random() * b5Edges.length)];
-      const [u, v] = key.split(',');
-      edge_state.set(key, 'M');
-      move_history.push([[u, v], 'M']);
-      undo_available = true;
-      undoBtn.disabled = false;
-      lastmove_available = true;
-      lastmoveBtn.disabled =false;
-      startEdgeAnimation(key, current_turn);
-      playClickSound();
-      checkWin();
-      if (!game_over) {
-        current_turn = 'B';
-      }
-      updateStatus();
-      draw();
-      return;
-    }
-  }
 
   const path = findBestPathForM();
 
