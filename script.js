@@ -1335,7 +1335,13 @@ function botplayleicht() {
 
 
 function findBestPathForM() {
-  const redNodesArray = Array.from(red_nodes);
+    const redNodesArray = Array.from(red_nodes);
+
+// Shuffle using Fisher–Yates algorithm
+for (let i = redNodesArray.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [redNodesArray[i], redNodesArray[j]] = [redNodesArray[j], redNodesArray[i]];
+}
 
   // Hilfsfunktion: BFS über M-Kanten, um alle von start aus verbundenen Knoten zu ermitteln
   function getConnectedNodes(start) {
